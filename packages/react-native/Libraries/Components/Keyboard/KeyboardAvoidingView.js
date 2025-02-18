@@ -69,6 +69,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
   _initialFrameHeight: number = 0;
   _bottom: number = 0;
   _windowWidth: number = Dimensions.get('window').width;
+  _keyboardTimeout: ?KeyboardEvent | null = null;
 
   constructor(props: Props) {
     super(props);
@@ -110,9 +111,15 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
   }
 
   _onKeyboardChange = (event: ?KeyboardEvent) => {
-    this._keyboardEvent = event;
-    // $FlowFixMe[unused-promise]
-    this._updateBottomIfNecessary();
+    if (this._keyboardTimeout) {
+      clearTimeout(this._keyboardTimeout);
+    }
+    
+    this._keyboardTimeout = setTimeout(() => {
+      this._keyboardEvent = event;
+      // $FlowFixMe[unused-promise]
+      this._updateBottomIfNecessary();
+    }, 100);
   };
 
   _onLayout = async (event: ViewLayoutEvent) => {
@@ -208,6 +215,10 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     this._subscriptions.forEach(subscription => {
       subscription.remove();
     });
+    
+    if (this._keyboardTimeout) {
+      clearTimeout(this._keyboardTimeout);
+    }
   }
 
   render(): React.Node {
